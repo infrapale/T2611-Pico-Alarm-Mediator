@@ -18,12 +18,12 @@ https://learn.adafruit.com/dvi-io/code-the-dashboard
 #include "io.h"
 #include "atask.h"
 #include "io.h"
-#include "rfm.h"
-#include "comm.h"
+#include "r69.h"
 #include "sd.h"
 #include "dingdong.h"
 #include "action.h"
 #include "super.h"
+#include "relay.h"
 
 
 void print_debug_task(void)
@@ -59,20 +59,14 @@ void setup(void) {
     Wire1.setSCL(PIN_I2C1_SCL);
     Wire1.begin();
 
-    SPI.setRX(PIN_SPI_0_MISO); // or setMISO()
-    SPI.setCS(PIN_SD_CS);
-    SPI.setSCK(PIN_SPI_0_SCK);
-    SPI.setTX(PIN_SPI_0_MOSI); // or setMOSI()
-    SPI.begin(false);
-
-
     io_initialize();
     atask_initialize();
     // atask_add_new(&debug_task_handle);
     io_task_initialize();
-    rfm_initialize();
+    r69_initialize();
     action_initialize();
     dingdong_initialize();
+    relay_initialize();
     // dingdong_play_all();
     super_initialize();
 }
@@ -87,7 +81,7 @@ void setup1()
 void loop() 
 {
     atask_run();
-    rfm_rx_task();
+    // r69_rx_task();
     super_clear_cntr(SUPER_CNTR_LOOP);
 }
 

@@ -1,3 +1,4 @@
+#include <SPI.h>
 #include "main.h"
 #include "io.h"
 #include "atask.h"
@@ -20,30 +21,44 @@ typedef struct
 io_ctrl_st io_ctrl;
 led_st led[LED_INDX_NBR_OF] = 
 {
-    [LED_INDX_RED]      = {PIN_LED_RED, 0, 0},
     [LED_INDX_YELLOW]   = {PIN_LED_YELLOW, 0, 0},
+    [LED_INDX_BLUE]     = {PIN_LED_BLUE, 0, 0},
 };
 
-const uint32_t led_pattern[BLINK_NBR_OF] = 
-{
-    0b0000000000000000,
-    0b1111111111111111,
-    0b1000000000000000,
-    0b1000000100000000,
-    0b1001001001001000,
-    0b1111111100000000,
-    0b1111000011110000,
-    0b1100111000111000,
-    0b1111000000100000,
-    0b1111000010001000,
-    0b1111001010101010,
-    0b1111001100110000,
+const uint32_t led_pattern[BLINK_NBR_OF] = {
+  [BLINK_OFF]       = 0b00000000000000000000000000000000,
+  [BLINK_ON]        = 0b11111111111111111111111111111111,
+  [BLINK_1_FLASH]   = 0b00000000000000000000000000000001,
+  [BLINK_2_FLASH]   = 0b10000000000000001000000000000000,
+  [BLINK_4_FLASH]   = 0b10000001000000001000000010000000,
+  [BLINK_SLOW]      = 0b11111111111111110000000000000000,
+  [BLINK_NORMAL]    = 0b11110000111100001111000011110000,
+  [BLINK_FAST]      = 0b11001100110011001100110011001100,
+  [BLINK_SOS]       = 0b10010010011100111001110010010010,
+  [BLINK_JITTER_1]  = 0b10101010101010101010101010101010,
+  [BLINK_JITTER_2]  = 0b10010010010010010010010010010010,
+  [BLINK_JITTER_3]  = 0b10001000100010001000100010001000,
 };
-
 
 void io_task(void);
 //                        123456789012345   ival  next  state  prev  cntr flag  call backup
 atask_st io_th      =   {"I/O Task       ", 100,     0,     0,  255,    0,  1,  io_task };
+
+void io_rfm69_spi0_initialize(void) {
+  SPI.setRX(PIN_RFM_MISO);
+  SPI.setTX(PIN_RFM_MOSI);
+  SPI.setSCK(PIN_RFM_SCK);
+  SPI.setCS(PIN_RFM_CS);
+  pinMode(PIN_RFM_RESET, OUTPUT);
+  digitalWrite(PIN_RFM_RESET, LOW);
+  SPI.begin();
+
+  SPI.beginTransaction(SPISettings(
+    1000000,  // 8 MHz
+    MSBFIRST,
+    SPI_MODE0));
+}
+
 
 
 void io_initialize(void)

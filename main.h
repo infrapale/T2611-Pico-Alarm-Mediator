@@ -24,7 +24,7 @@
 #define UNIT_LABEL_LEN      10
 #define MEASURE_LABEL_LEN   16
 
-#define __APP__   "T2611-Pico-Alarm-Dong"
+#define __APP__   ((char*)"T2611-Pico-Alarm-Mediator")
 
 typedef struct
 {

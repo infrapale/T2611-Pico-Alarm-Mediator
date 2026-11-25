@@ -8,8 +8,12 @@
 #include "action.h"
 #include "dingdong.h"
 #include "atask.h"
+#include "r69.h"
+#include "relay.h"
 
-#define    EVENT_NAME_LEN   10
+#define     EVENT_NAME_LEN      10
+#define     ACTION_BUFF_LEN     40
+#define     NBR_EVENT_RELAY     4
 
 typedef enum
 {
@@ -59,12 +63,20 @@ typedef struct
 } alarm_param_st;
 
 
+typedef struct
+{
+    va_relays_et    indx;
+    uint16_t        duration_sec;
+} event_relay_st; 
+
+
 typedef struct 
 {
     char            name[EVENT_NAME_LEN];
     uint16_t        counter;
     uint8_t         state;
     alarm_param_st  alarm[ALARM_NBR_OF];
+    event_relay_st  relay[NBR_EVENT_RELAY];
     //tone_param_st   tone[HOME_NBR_OF];
     //action_indx_et  action[HOME_NBR_OF];
 } event_st;
@@ -73,6 +85,7 @@ typedef struct
 {
     uint8_t nbr_of_events;
     home_state_et home_state;
+    char    buff[ACTION_BUFF_LEN];
 } action_ctrl_st;
 
 
@@ -89,6 +102,13 @@ event_st event[] =
             [HOME_OUTDOOR]  = {ALARM_ALERT_HIGH,    5},
             [HOME_SLEEP]    = {ALARM_ALERT_LOW,     2},
             [HOME_MUTE]     = {ALARM_OFF,           0},
+        },
+        .relay = { 
+            {VA_RELAY_PIHA,     120},
+            {VA_RELAY_PARVI,    300},
+            {VA_RELAY_TK,       300},
+            {VA_RELAY_ET,       90},
+
         }
     },
     {
@@ -102,6 +122,13 @@ event_st event[] =
             [HOME_OUTDOOR]  = {ALARM_ALERT_HIGH,    5},
             [HOME_SLEEP]    = {ALARM_ALERT_LOW,     2},
             [HOME_MUTE]     = {ALARM_OFF,           0},
+        },
+        .relay = { 
+            {VA_RELAY_PIHA,     120},
+            {VA_RELAY_PARVI,    300},
+            {VA_RELAY_TK,       300},
+            {VA_RELAY_ET,       90},
+
         }
     },
     {
@@ -115,6 +142,13 @@ event_st event[] =
             [HOME_OUTDOOR]  = {ALARM_ALERT_HIGH,    5},
             [HOME_SLEEP]    = {ALARM_ALERT_LOW,     2},
             [HOME_MUTE]     = {ALARM_OFF,           0},
+        },
+        .relay = { 
+            {VA_RELAY_TERASSI,     120},
+            {VA_RELAY_PARVI,       300},
+            {VA_RELAY_UNDEF,       300},
+            {VA_RELAY_UNDEF,       90},
+
         }
     },
     {
@@ -128,6 +162,13 @@ event_st event[] =
             [HOME_OUTDOOR]  = {ALARM_ALERT_HIGH,    5},
             [HOME_SLEEP]    = {ALARM_ALERT_LOW,     2},
             [HOME_MUTE]     = {ALARM_OFF,           0},
+        },
+        .relay = { 
+            {VA_RELAY_PIHA,     120},
+            {VA_RELAY_PARVI,    300},
+            {VA_RELAY_TK,       300},
+            {VA_RELAY_ET,       90},
+
         }
     },
 };
@@ -172,11 +213,23 @@ void action_new_event(char *namep)
                       event[ev].name, ev);
         alarm_indx_et aindx = event[ev].alarm[action_ctrl.home_state].alarm_indx;
         uint32_t duration = event[ev].alarm[action_ctrl.home_state].duration_sec;
+
+        sprintf(action_ctrl.buff, "<A;Buster;A;%d;D;%d>", aindx, duration );
+        Serial.println(action_ctrl.buff);
+        r69_send(action_ctrl.buff);
+        for(uint8_t i= 0; i< NBR_EVENT_RELAY; i++)
+        {
+            if (event[ev].relay[i].indx > VA_RELAY_UNDEF) {
+                relay_activate( event[ev].relay[i].indx, event[ev].relay[i].duration_sec );
+            }
+        }
+        // Local DingDong
         float freq1 = local_tone[aindx].freq1;     
         float freq2 = local_tone[aindx].freq2;     
         float freq3 = local_tone[aindx].freq3;     
         Serial.printf("Tone: %d, %f %f %f\n", duration, freq1, freq2, freq3);    
         dingdong_play_tone(duration, freq1, freq2, freq3);
+        
 
         // switch(ev)
         // {

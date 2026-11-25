@@ -1,7 +1,7 @@
 #include <I2S.h>
 #include <SPI.h>
 #include "SdFat.h"
-#include "sd.h"
+// #include "sd.h"
 
 #include "main.h"
 #include "dingdong.h"
@@ -56,7 +56,7 @@ char wav_files[WAV_NBR_OF][40] =
     
 
 
-extern SdFat SD;
+// extern SdFat SD;
 //extern SdSpiConfig config(PIN_SD_CS, DEDICATED_SPI, SD_SCK_MHZ(12), &SPI1);
 WAVHeader header;
 I2S i2s(OUTPUT, PIN_I2S_BCLK, PIN_I2S_DOUT);
@@ -64,99 +64,99 @@ I2S i2s(OUTPUT, PIN_I2S_BCLK, PIN_I2S_DOUT);
 
 void dingdong_initialize() {
     Serial.println("dingdong_initialize()");
-    dingdong.sd_ok = sd_initialize();
+    // dingdong.sd_ok = sd_initialize();
     Serial.println("---!");
 }  
 
 void dingdong_play_wav(wav_files_et wav_indx)
 {
-    if (dingdong.sd_ok)
-    {
-        //wavFile = SD.open("bigben.wav");
-        wavFile = SD.open(wav_files[wav_indx]);
-        if (!wavFile) {
-            Serial.println("Failed to open WAV file");
-            dingdong.wav_ok = false;
-        }
-        else dingdong.wav_ok = true;
+    // if (dingdong.sd_ok)
+    // {
+    //     //wavFile = SD.open("bigben.wav");
+    //     wavFile = SD.open(wav_files[wav_indx]);
+    //     if (!wavFile) {
+    //         Serial.println("Failed to open WAV file");
+    //         dingdong.wav_ok = false;
+    //     }
+    //     else dingdong.wav_ok = true;
 
-        if(dingdong.wav_ok)
-        {
-
-
-            // Read WAV header
-            wavFile.read(&header, sizeof(WAVHeader));
-
-            Serial.print("Sample rate: ");
-            Serial.println(header.sampleRate);
-            Serial.print("Bits: ");
-            Serial.println(header.bitsPerSample);
-            Serial.print("Channels: ");
-            Serial.println(header.numChannels);
-            Serial.print("audioFormat: "); Serial.println(header.audioFormat);
-            Serial.print("bitsPerSample: "); Serial.println(header.bitsPerSample);
-            Serial.print("numChannels: "); Serial.println(header.numChannels);
-            Serial.print("dataHeader: "); Serial.write(header.dataHeader, 4); Serial.println();
-            Serial.write(header.riff, 4);      Serial.println();
-            Serial.write(header.wave, 4);      Serial.println();
-            Serial.write(header.fmt, 4);       Serial.println();
-            Serial.write(header.dataHeader, 4);Serial.println();
+    //     if(dingdong.wav_ok)
+    //     {
 
 
+    //         // Read WAV header
+    //         wavFile.read(&header, sizeof(WAVHeader));
 
-            i2s.setBitsPerSample(header.bitsPerSample);
-            //i2s.setFrequency(header.sampleRate);
+    //         Serial.print("Sample rate: ");
+    //         Serial.println(header.sampleRate);
+    //         Serial.print("Bits: ");
+    //         Serial.println(header.bitsPerSample);
+    //         Serial.print("Channels: ");
+    //         Serial.println(header.numChannels);
+    //         Serial.print("audioFormat: "); Serial.println(header.audioFormat);
+    //         Serial.print("bitsPerSample: "); Serial.println(header.bitsPerSample);
+    //         Serial.print("numChannels: "); Serial.println(header.numChannels);
+    //         Serial.print("dataHeader: "); Serial.write(header.dataHeader, 4); Serial.println();
+    //         Serial.write(header.riff, 4);      Serial.println();
+    //         Serial.write(header.wave, 4);      Serial.println();
+    //         Serial.write(header.fmt, 4);       Serial.println();
+    //         Serial.write(header.dataHeader, 4);Serial.println();
 
-            if (i2s.begin(header.sampleRate)) {
-                dingdong.i2s_ok = true;  
-            }  
-            else{  
-                Serial.println("I2S begin failed!");
-                dingdong.i2s_ok = false;
-            }
-            if(dingdong.i2s_ok)
-            {
-                Serial.println("Playing...");
-                static uint8_t buffer[512];
-                dingdong.more_data = true;
-                while(dingdong.more_data)
-                {
-                    if (!wavFile.available()) {
-                      Serial.println("Done.");
-                      wavFile.close();
-                      dingdong.more_data = false;;
-                    } else {
-                        int bytesRead = wavFile.read(buffer, sizeof(buffer));
-                        if (bytesRead <= 0) dingdong.more_data = false;
-                        else{
-                            int bytesPerSample = header.bitsPerSample / 8;
-                            int frameSize = bytesPerSample * header.numChannels;
 
-                            for (int i = 0; i + frameSize <= bytesRead; i += frameSize) {
 
-                                int16_t sample16 = 0;
+    //         i2s.setBitsPerSample(header.bitsPerSample);
+    //         //i2s.setFrequency(header.sampleRate);
 
-                                if (header.numChannels == 1) {
-                                    sample16 = (int16_t)(buffer[i] | (buffer[i+1] << 8));
-                                } else {
-                                    int16_t left  = (int16_t)(buffer[i] | (buffer[i+1] << 8));
-                                    int16_t right = (int16_t)(buffer[i+2] | (buffer[i+3] << 8));
-                                    sample16 = (left / 2) + (right / 2);
-                                }
+    //         if (i2s.begin(header.sampleRate)) {
+    //             dingdong.i2s_ok = true;  
+    //         }  
+    //         else{  
+    //             Serial.println("I2S begin failed!");
+    //             dingdong.i2s_ok = false;
+    //         }
+    //         if(dingdong.i2s_ok)
+    //         {
+    //             Serial.println("Playing...");
+    //             static uint8_t buffer[512];
+    //             dingdong.more_data = true;
+    //             while(dingdong.more_data)
+    //             {
+    //                 if (!wavFile.available()) {
+    //                   Serial.println("Done.");
+    //                   wavFile.close();
+    //                   dingdong.more_data = false;;
+    //                 } else {
+    //                     int bytesRead = wavFile.read(buffer, sizeof(buffer));
+    //                     if (bytesRead <= 0) dingdong.more_data = false;
+    //                     else{
+    //                         int bytesPerSample = header.bitsPerSample / 8;
+    //                         int frameSize = bytesPerSample * header.numChannels;
 
-                                // ⭐ Write 16‑bit samples, exactly like your tone sketch
-                                i2s.write(sample16); // Left
-                                i2s.write(sample16); // Right
-                            }
-                        }
-                    }
-                }
-            }
-            i2s.end();
-        }
-    }
-    else 
-        Serial.println("SD initialization failed!");
+    //                         for (int i = 0; i + frameSize <= bytesRead; i += frameSize) {
+
+    //                             int16_t sample16 = 0;
+
+    //                             if (header.numChannels == 1) {
+    //                                 sample16 = (int16_t)(buffer[i] | (buffer[i+1] << 8));
+    //                             } else {
+    //                                 int16_t left  = (int16_t)(buffer[i] | (buffer[i+1] << 8));
+    //                                 int16_t right = (int16_t)(buffer[i+2] | (buffer[i+3] << 8));
+    //                                 sample16 = (left / 2) + (right / 2);
+    //                             }
+
+    //                             // ⭐ Write 16‑bit samples, exactly like your tone sketch
+    //                             i2s.write(sample16); // Left
+    //                             i2s.write(sample16); // Right
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         i2s.end();
+    //     }
+    // }
+    // else 
+    //     Serial.println("SD initialization failed!");
 
 }
 
